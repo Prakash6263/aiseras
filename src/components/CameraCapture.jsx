@@ -79,8 +79,29 @@ export default function CameraCapture({ onCapture, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-black rounded-lg p-6 max-w-2xl w-full mx-4">
-        <h2 className="text-white text-xl font-bold mb-4">Capture Your Face</h2>
+      <div className="bg-black rounded-lg p-6 max-w-2xl w-full mx-4 relative">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-white text-xl font-bold">Capture Your Face</h2>
+          <button
+            onClick={onClose}
+            className="text-white hover:text-gray-300 transition-colors"
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              borderRadius: "50%",
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 20,
+              cursor: "pointer",
+            }}
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
 
         {error && <div className="bg-red-500 text-white p-3 rounded mb-4 text-sm">{error}</div>}
 

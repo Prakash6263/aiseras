@@ -24,6 +24,38 @@ const SelectOption = () => {
         <div className="container">
           <div className="row justify-content-center w-100">
             <div className="col-lg-6 col-md-8 col-11 text-center">
+              {/* Back Button */}
+              <button
+                onClick={() => navigate("/customize")}
+                style={{
+                  position: "absolute",
+                  top: 120,
+                  left: 20,
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  borderRadius: "50%",
+                  width: 40,
+                  height: 40,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 20,
+                  color: "#fff",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255,255,255,0.2)";
+                  e.target.style.boxShadow = "0 0 12px rgba(255,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(255,255,255,0.1)";
+                  e.target.style.boxShadow = "none";
+                }}
+                title="Go back"
+              >
+                ←
+              </button>
               <h2 className="mb-4 text-white fw-bold">
                 Choose an Option
               </h2>

@@ -164,8 +164,43 @@ export default function CustomizeAvatar() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            position: "relative",
           }}
         >
+          {/* Close Button */}
+          <button
+            onClick={() => navigate("/landing")}
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              borderRadius: "50%",
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: 20,
+              color: "#fff",
+              transition: "all 0.3s ease",
+              zIndex: 10,
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = "rgba(255,255,255,0.2)";
+              e.target.style.boxShadow = "0 0 12px rgba(255,255,255,0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = "rgba(255,255,255,0.1)";
+              e.target.style.boxShadow = "none";
+            }}
+            title="Close"
+          >
+            ✕
+          </button>
+
           {/* Title */}
           <div>
             <p style={{ textAlign: "center", fontSize: 22 }}>
