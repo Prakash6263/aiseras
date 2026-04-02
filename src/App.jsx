@@ -6,7 +6,7 @@ import VerificationMail from "./pages/VerificationMail"
 import FillProfile from "./pages/FillProfile"
 import SignIn from "./pages/SignIn"
 
-import Result from "./pages/result"
+import Result from "./pages/Result"
 import Landing from "./pages/Landing"
 import PublicRoute from "./components/PublicRoute"
 import CustomizeAvtar from "./pages/CustomizeAvtar"
@@ -57,10 +57,10 @@ function App() {
         <Route path="/customize" element={<CustomizeAvtar />} />
         <Route path="/final" element={<FinalAvtar />} />
         <Route path="/addVoice" element={<AddVoice />} />
-         <Route path="/voice-recording-started" element={<VoiceRecordingStarted />} />
-          <Route path="/voice-recording-completed" element={<VoiceRecordingCompleted />} />
-          <Route path="/AddCredit" element={<AddCredit />} />
-          <Route path="/selectOption" element={<SelectOption />} />
+        <Route path="/voice-recording-started" element={<VoiceRecordingStarted />} />
+        <Route path="/voice-recording-completed" element={<VoiceRecordingCompleted />} />
+        <Route path="/AddCredit" element={<AddCredit />} />
+        <Route path="/selectOption" element={<SelectOption />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/avtarsucess" element={<AvtarSuccess />} />
       </Routes>
