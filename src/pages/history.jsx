@@ -471,10 +471,10 @@ const History = () => {
                 )}
 
                 <Link
-                  to="/face-recognition"
+                  to="/landing"
                   className="border border-neutral-700 px-4 py-2 rounded-md hover:bg-neutral-800"
                 >
-                  Let’s Create One
+                  Let's Create One
                 </Link>
               </div>
             )}

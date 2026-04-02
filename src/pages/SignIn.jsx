@@ -45,7 +45,7 @@ const SignIn = () => {
         localStorage.setItem("user_id", String(data?.user?.id ?? ""));
 
         swal("Success", data.message, "success").then(() => {
-          navigate("/face-recognition");
+          navigate("/landing");
         });
       } else {
         swal("Error", data.message || "Login failed", "error");
