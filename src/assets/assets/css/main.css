@@ -10007,7 +10007,7 @@ p {
 
 .plan__items__two .prices__area {
   text-align: left;
-  border-bottom: unset;
+  /* border-bottom: unset; */
 }
 
 .plan__items__two .prices__area h4 {

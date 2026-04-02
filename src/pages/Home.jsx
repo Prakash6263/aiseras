@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import BannerHome from "../components/BannerHome";
@@ -12,11 +12,16 @@ import img5 from "../assets/images/3d-head.png";
 import img6 from "../assets/images/image-3.png";
 import img7 from "../assets/images/image-4.png";
 import img8 from "../assets/images/activity_zone.png";
-import Cookies from "js-cookie";
+import { Link } from "react-router-dom";
+import Aos from "aos";
+import "aos/dist/aos.css";
+
 
 const Home = () => {
-  const userData = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
-  console.log(userData);
+useEffect(()=>{
+  Aos.init({duration: 500,    
+    easing: 'ease-in-out',})
+},[])
 
   return (
     <>
@@ -67,7 +72,7 @@ const Home = () => {
           <div className="section__header  pb__60">
             <div className="row">
               <div className="col-lg-6">
-                <h2 className="wow fadeInDown" data-wow-duration="1.5s">
+                <h2 data-aos="fade-down">
                   Discover the 100% <br />
                   accuracy of AI Recognition
                 </h2>
@@ -95,20 +100,20 @@ const Home = () => {
               <div className="row mb-5">
                 <div className="col-lg-8">
                   <div className="btg__grp mb-5">
-                    <a
-                      href="#"
-                      className="btn btn-purple  me-2"
+                    <Link
+                      to={"/"}
+                      className="btn-purple px-4 py-2 me-2"
                       style={{ width: "auto" }}
                     >
                       Simplifying AI for Everyone
-                    </a>
-                    <a
-                      href="#"
+                    </Link>
+                    <Link
+                      to={"/"}
                       className="btn btn-primary br-30"
                       style={{ width: "auto" }}
                     >
                       <span>AI Generator Platform</span>
-                    </a>
+                    </Link>
                   </div>
                   <h3 className="text-white mb-5">
                     Empower Your Vision with <br />
@@ -167,7 +172,7 @@ const Home = () => {
         <div className="container">
           {/*Header*/}
           <div className="section__header section__center pb__60">
-            <h2 className="wow fadeInUp" data-wow-duration="1.5s">
+            <h2 data-aos="fade-in">
               Transform Ideas into Reality with Cutting-Edge AI Solutions
             </h2>
           </div>
@@ -175,8 +180,8 @@ const Home = () => {
           <div className="row g-4">
             {/*col*/}
             <div
-              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6 wow fadeInDown"
-              data-wow-duration="1.2s"
+              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6"
+              data-aos="fade-out"
             >
               <div className="five__work__items">
                 <div>
@@ -186,8 +191,8 @@ const Home = () => {
             </div>
             {/*col*/}
             <div
-              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6 wow fadeInDown"
-              data-wow-duration="1.4s"
+              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6"
+              data-aos="fade-out"
             >
               <div className="five__work__items five__work__2">
                 <div>
@@ -197,8 +202,8 @@ const Home = () => {
             </div>
             {/*col*/}
             <div
-              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6 wow fadeInDown"
-              data-wow-duration="1.6s"
+              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6"
+              data-aos="fade-out"
             >
               <div className="five__work__items five__work__3">
                 <div>
@@ -208,8 +213,8 @@ const Home = () => {
             </div>
             {/*col*/}
             <div
-              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6 wow fadeInDown"
-              data-wow-duration="1.8s"
+              className="col-xxl-3 col-xl-3 col-lg-6 col-md-6 col-sm-6"
+              data-aos="fade-out"
             >
               <div className="five__work__items five__work__4">
                 <div>

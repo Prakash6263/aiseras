@@ -1,62 +1,68 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { verificationOtpEmail } from "../utils/authApi";
 import img1 from "../assets/images/google.png";
 import img2 from "../assets/images/facebook.png";
-import Cookies from "js-cookie";
+import { verifyEmailOTP } from "../utils/authApi";
 
 const VerificationMail = () => {
   const navigate = useNavigate();
-  const email = Cookies.get("user_email") || "";
-
+  const location = useLocation();
   const [verificationData, setVerificationData] = useState({
-    email: email,
+    email: "",
     code: "",
   });
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-
-  // Redirect to signup if email is missing
+  
   useEffect(() => {
-    if (!email) {
-      navigate("/signup");
-    } else {
-      setPageLoading(false);
+    if (location.state?.email) {
+      setVerificationData((prev) => ({ ...prev, email: location.state.email }));
     }
-  }, [email, navigate]);
+    setPageLoading(false);
+  }, []);
 
-  const verificationCheck = async () => {
+
+  const verificationCheck = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     setMessage("");
-    if (!verificationData.code) {
-      setMessage("Please enter the verification code.");
+
+    const { email, code } = verificationData;
+
+    if (!email || !code) {
+      setMessage("Email and OTP are required.");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     try {
-      const res = await verificationOtpEmail(verificationData);
-      if (res.success) {
-        setMessage("Verification successful! Redirecting...");
-        setTimeout(() => navigate("/profile"), 1000);
+      const formData = new URLSearchParams();
+      formData.append("email", email);
+      formData.append("otp", code);
+
+      const data = await verifyEmailOTP(formData);
+
+      if (data.status === 1) {
+        swal("Success", data.message, "success").then(() => {
+          navigate("/profile", { state: { user_id: data.user_id } });
+        });      
       } else {
-        setMessage(res.message || "Verification failed. Please try again.");
+        swal("Error", data.message || "Verification failed", "error");
       }
-    } catch (error) {
-      setMessage(error.response?.data?.message || "Something went wrong.");
+    } catch (err) {
+      swal("Error", err.response?.data?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  if (pageLoading) {
-    return <div className="page_loader">Loading...</div>;
-  }
+
 
   return (
     <>
-      <div className="page_loader" />
       <div className="login-30 test-verify tab-box">
         <div className="container-fluid">
           <div className="row">
@@ -89,6 +95,8 @@ const VerificationMail = () => {
                         })
                       }
                     />
+
+
                   </div>
 
                   {message && (
@@ -113,14 +121,14 @@ const VerificationMail = () => {
                   </button>
 
                   <hr />
-                  <p className="text-center mb-3 text-white">
+                  {/* <p className="text-center mb-3 text-white">
                     Or continue with
                   </p>
                   <div className="d-flex justify-content-between">
-                    <button className="btn btn-social">
+                    <button className="btn btn-social flex justify-center items-center">
                       <img src={img1} alt="Google" /> Google
                     </button>
-                    <button className="btn btn-social">
+                    <button className="btn btn-social flex justify-center items-center">
                       <img src={img2} alt="Facebook" /> Facebook
                     </button>
                   </div>
@@ -129,7 +137,7 @@ const VerificationMail = () => {
                     <a href="#" className="text-primary">
                       Terms and Conditions
                     </a>
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>

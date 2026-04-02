@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import img1 from "../assets/images/image-1.png";
 import img2 from "../assets/images/image.png";
+import { Link } from "react-router-dom";
+import Aos from "aos";
+import "aos/dist/aos.css";
+
 
 const HighLighted = () => {
+  useEffect(()=>{
+    Aos.init({
+      duration: 500,     
+    easing: 'ease-in-out',
+    })
+  },[])
   return (
     <section className="hightlight__section__five  pt-120 pb-120">
       {/*container*/}
@@ -13,8 +23,8 @@ const HighLighted = () => {
             <div className="col-lg-6"></div>
             <div className="col-lg-6">
               <h2
-                className="wow fadeInDown text-right"
-                data-wow-duration="1.5s"
+                className="text-right !text-4xl"
+                data-aos="fade-down"
               >
                 100% AI Smarter Facial <br />
                 Faster Solutions
@@ -58,13 +68,13 @@ const HighLighted = () => {
             </div>
             <div className="row mb-3">
               <div className="col-lg-12">
-                <div className="btg__grp">
-                  <a href="#" className="btn btn-primary me-3 br-30">
+                <div className="btg__grp flex items-center">
+                  <Link to={"/"} className="btn btn-primary me-3 br-30">
                     <span>Read More →</span>
-                  </a>
-                  <a href="#" className="btn btn-purple">
+                  </Link>
+                  <Link to={"/"} className="btn-purple px-4 py-2">
                     Learn More →
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

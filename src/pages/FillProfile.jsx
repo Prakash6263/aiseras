@@ -1,22 +1,15 @@
-import React, { useState, useEffect } from "react";
-import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
-import { completeProfileData } from "../utils/authApi";
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import img1 from "../assets/images/google.png";
 import img2 from "../assets/images/facebook.png";
+import { completeUserProfile } from "../utils/authApi";
+import swal from "sweetalert";
 
 const FillProfile = () => {
   const navigate = useNavigate();
-  const userEmail = Cookies.get("user_email");
-
-  useEffect(() => {
-    if (!userEmail) {
-      navigate("/signup");
-    }
-  }, [userEmail, navigate]);
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
-    email: userEmail || "",
     fullname: "",
     age: "",
     gender: "",
@@ -38,33 +31,49 @@ const FillProfile = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
-    if (
-      !formData.email ||
-      !formData.fullname ||
-      !formData.age ||
-      !formData.gender ||
-      !formData.password
-    ) {
-      setError("Please fill in all fields.");
+   const user_id =
+  location.state?.user_id || JSON.parse(localStorage.getItem("user"))?.id;
+    console.log("User ID from location state:", user_id);
+
+    if (!user_id) {
+      setError("User ID not found. Please start from email verification.");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
+    const { fullname, age, gender, password } = formData;
+
+    if (!fullname || !age || !gender || !password) {
+      setError("All fields are required.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await completeProfileData(formData);
-      console.log(res.data);
-      Cookies.set("user", JSON.stringify(res.data), { expires: 7 });
-      navigate("/");
-      setFormData({
-        email: userEmail,
-        fullname: "",
-        age: "",
-        gender: "",
-        password: "",
-      });
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to complete profile.");
+      const payload = new URLSearchParams();
+      payload.append("user_id", user_id);
+      payload.append("full_name", fullname);
+      payload.append("age", age);
+      payload.append("gender", gender);
+      payload.append("password", password);
+
+      const data = await completeUserProfile(payload);
+
+      if (data.status === 1) {
+        swal("Success", data.message, "success").then(() => {
+          navigate("/signin");
+        });
+      } else {
+        swal("Error", data.message || "Profile submission failed", "error");
+      }
+    } catch (err) {
+      swal(
+        "Error",
+        err.response?.data?.message || "Something went wrong",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -75,9 +84,7 @@ const FillProfile = () => {
       <div className="login-30 tab-box">
         <div className="container-fluid">
           <div className="row">
-            <div
-              className="col-lg-5 col-md-12 bg-img"
-            ></div>
+            <div className="col-lg-5 col-md-12 bg-img"></div>
             <div className="col-lg-7 col-md-12 form-section">
               <div className="login-inner-form">
                 <div className="details">
@@ -134,23 +141,31 @@ const FillProfile = () => {
                   </form>
 
                   <hr />
-                  <p className="text-center mb-3 text-white">
+                  {/* <p className="text-center mb-3 text-white">
                     Or continue with
                   </p>
-                  <div className="d-flex justify-content-between">
-                    <button className="btn btn-social">
-                      <img src={img1} alt="Google" /> Google
-                    </button>
-                    <button className="btn btn-social">
-                      <img src={img2} alt="Facebook" /> Facebook
-                    </button>
+                  <div className="row g-2">
+                    <div className="col-12 col-md-6">
+                      <button className="btn btn-social w-100 d-flex align-items-center justify-content-center gap-2">
+                        <img src={img1} alt="Google" style={{ width: 18 }} />
+                        Google
+                      </button>
+                    </div>
+
+                    <div className="col-12 col-md-6">
+                      <button className="btn btn-social w-100 d-flex align-items-center justify-content-center gap-2">
+                        <img src={img2} alt="Facebook" style={{ width: 18 }} />
+                        Facebook
+                      </button>
+                    </div>
                   </div>
+
                   <p className="text-center mt-3">
                     By registering, you agree to our{" "}
                     <a href="#" className="text-primary">
                       Terms and Conditions
                     </a>
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>

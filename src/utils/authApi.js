@@ -1,48 +1,80 @@
 import axios from "axios";
 
-// const API_URL = "https://aiseras-backend.onrender.com/api";
-const API_URL = "http://localhost:8001/api";
+const API_URL = "https://api.aiseras.com/aiseras";
+// const API_URL = "https://54.66.171.2/aiseras";
 
-export const sendVerificationOtp = async (email) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/send-verification`, {
-      email,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error sending OTP:", error.response?.data || error.message);
-    return { success: false, message: "Failed to send OTP" };
-  }
+// const API_URL = "http://localhost:8001/api";
+
+
+export const registerWithEmail = async (formData) => {
+  const response = await axios.post(`${API_URL}/register`, formData, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+  });
+  return response.data; // 👈 return only the body
 };
 
-export const verificationOtpEmail = async (data) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/verify-email`, data);
-    return response.data;
-  } catch (error) {
-    console.error("Error sending OTP:", error.response?.data || error.message);
-    return { success: false, message: "Failed to send OTP" };
-  }
+
+export const verifyEmailOTP = async (formData) => {
+  const response = await axios.post(`${API_URL}/verify-email`, formData, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+  });
+  return response.data;
 };
 
-export const completeProfileData = async (data) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/complete-profile`, data);
-    console.log("Response Verification:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error sending OTP:", error.response?.data || error.message);
-    return { success: false, message: "Failed to send OTP" };
-  }
+
+export const completeUserProfile = async (formData) => {
+  const response = await axios.post(`${API_URL}/complete-profile`, formData, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+  });
+  return response.data;
 };
 
-export const loginUser = async (data) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/login`, data);
-    console.log("Response Verification:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error sending OTP:", error.response?.data || error.message);
-    return { success: false, message: "Failed to send OTP" };
-  }
+export const loginUser = async (formData) => {
+  const response = await axios.post(`${API_URL}/login`, formData, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+  });
+  console.log("login-response",response.data)
+  return response.data;
+};
+
+
+export const uploadFaceImage = async (imageBlob) => {
+  const formData = new FormData();
+  formData.append("file", imageBlob, "capture.jpg");
+
+  const response = await axios.post(`${API_URL}/upload-image`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Accept: "application/json",
+    },
+  });
+
+  return response.data;
+};
+
+
+export const captureFace = async (imageBase64) => {
+  const payload = new URLSearchParams();
+  payload.append("image_base64", imageBase64);
+
+  const response = await axios.post(`${API_URL}/capture-face`, payload, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+  });
+
+  return response.data;
 };

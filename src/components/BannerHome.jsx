@@ -5,7 +5,7 @@ import img3 from "../assets/images/group.png";
 
 const BannerHome = () => {
   return (
-    <section className="banner__section banner__section__five bannerbg" style={{color:"white"}}>
+    <section className="banner__section banner__section__five bannerbg p-4" style={{color:"white"}}>
       {/*Container*/}
       <div className="container">
         <div className="banner__wrapper">
@@ -16,7 +16,7 @@ const BannerHome = () => {
                   <span className="d3 mb-5">
                     Facial emotion recognition through artificial intelligence
                   </span>
-                  <p>
+                  <p className="pt-6">
                     <small>
                       From generating complex algorithms to simple <br />
                       AI-driven tools, we offer cutting-edge
@@ -25,8 +25,8 @@ const BannerHome = () => {
                   <div className="row mb-5">
                     <div className="col-lg-6 col-6">
                       <span>
-                        Faces Don’ttell <br />
-                        lieas
+                        Faces Don’t tell <br />
+                        lies
                       </span>
                     </div>
                     <div className="col-lg-6 col-6 d-flex flex-wrap">
@@ -48,7 +48,7 @@ const BannerHome = () => {
                         <a href="#" className="btn btn-primary br-30">
                           <span>Read More →</span>
                         </a>
-                        <a href="#" className="btn btn-purple">
+                        <a href="#" className="btn-purple px-4 py-2">
                           Learn More →
                         </a>
                       </div>
@@ -63,7 +63,7 @@ const BannerHome = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="banner5__blump">
+                  <div className="banner5__blump p-2">
                     <div className="text-white smallbox">
                       <h4 className="text-white">
                         <span>13+</span>{" "}

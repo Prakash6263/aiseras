@@ -1,8 +1,8 @@
 import React from "react";
-import img1 from "../assets/assets/img/logo/logo.png";
+import img1 from "../assets/assets/img/logo/seras-logo.jpg";
 import img2 from "../assets/assets/img/svg-icon/facebook.svg";
 import img3 from "../assets/assets/img/svg-icon/instagram.svg";
-import img4 from "../assets/assets/img/svg-icon/twitter.svg";
+import img4 from "../assets/assets/img/svg-icon/x.svg";
 import img5 from "../assets/assets/img/svg-icon/linkedin.svg";
 
 const Footer = () => {
@@ -15,8 +15,17 @@ const Footer = () => {
               <div className="col-xxl-3 col-xl-3 col-lg-3 col-md-6 col-sm-6">
                 <div className="footer__widget">
                   <div className="widget__head">
-                    <a href="index.html" className="footer__logo">
-                      <img src={img1} alt="logo" style={{ width: 150 }} />
+                    <a href="/" className="footer__logo">
+                      <img
+                        src={img1}
+                        alt="logo"
+                        style={{
+                          width: 50,
+                          height: 50,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
                     </a>
                   </div>
                   <p className="pb__20" style={{ color: "white" }}>
@@ -122,52 +131,87 @@ const Footer = () => {
           <div className="footer__bottom footer__bottom__two">
             <ul className="footer__bottom__link" style={{ color: "white" }}>
               <li>
-                <a href="support.html" style={{textDecoration:"none",color: "white"}}>Terms</a>
+                <a
+                  href="support.html"
+                  style={{ textDecoration: "none", color: "white" }}
+                >
+                  Terms
+                </a>
               </li>
               <li>
-                <a href="support.html" style={{textDecoration:"none",color: "white"}}>Privacy</a>
+                <a
+                  href="support.html"
+                  style={{ textDecoration: "none", color: "white" }}
+                >
+                  Privacy
+                </a>
               </li>
               <li>
-                <a href="support.html" style={{textDecoration:"none",color: "white"}}>Cookies</a>
+                <a
+                  href="support.html"
+                  style={{ textDecoration: "none", color: "white" }}
+                >
+                  Cookies
+                </a>
               </li>
             </ul>
             <p>© 2025 By Aiseras. All Rights Reserved.</p>
             <ul className="social">
               <li>
-                <a href="javascript:void(0)" className="social__item">
-                  <span className="icon">
-                    <img src={img2} alt="svg" />
-                  </span>
+                <a
+                  href="javascript:void(0)"
+                  className="social__item"
+                  style={{
+                    display: "flex",
+                    backgroundColor: "#1877F2",   // facebook gradient
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <img src={img2} alt="svg" style={{ width: 20, height: 20 }} />  
                 </a>
               </li>
               <li>
                 <a
                   href="javascript:void(0)"
-                  className="social__item social__itemtwo"
+                  className="social__item"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background:
+                      "linear-gradient(45deg, #f09433, #dc2743, #bc1888)", // 🔥 Instagram gradient
+                  }}
                 >
-                  <span className="icon">
-                    <img src={img3} alt="svg" />
-                  </span>
+                  <img src={img3} alt="svg" style={{ width: 20, height: 20 }} />
                 </a>
               </li>
               <li>
                 <a
                   href="javascript:void(0)"
-                  className="social__item social__itemthree"
+                  className="social__item"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background:"#ffffff", // 🔥 x gradient
+                  }}
                 >
-                  <span className="icon">
-                    <img src={img4} alt="svg" />
-                  </span>
+                  <img src={img4} alt="svg" style={{ width: 20, height: 20 }} />
                 </a>
               </li>
               <li>
                 <a
                   href="javascript:void(0)"
-                  className="social__item social__itemfour"
+                  className="social__item"
+                  style={{
+                    display: "flex",
+                    backgroundColor: "#0077B5",   // 🔥 linkedIn gradient
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <span className="icon">
-                    <img src={img5} alt="svg" />
-                  </span>
+                  <img src={img5} alt="svg" style={{ width: 16, height: 16 }} />   
                 </a>
               </li>
             </ul>
