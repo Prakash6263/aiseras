@@ -8,6 +8,7 @@ import cloneDummy from "../assets/images/select2.png";
 import imageDummy from "../assets/images/select3.png";
 import Header1 from "../components/Header1";
 import Footer from "../components/Footer";
+import CameraCapture from "../components/CameraCapture";
 
 // Avatar types + mapping to API style
 const avatarTypes = [
@@ -30,6 +31,7 @@ export default function CustomizeAvatar() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
 
   const [previewMap, setPreviewMap] = useState(() =>
     avatarTypes.reduce((acc, item) => {
@@ -44,9 +46,25 @@ export default function CustomizeAvatar() {
     setSelectedType(type);
     // 🔹 Clone Avatar uses camera, others use file upload
     if (type === "clone") {
-      cameraInputRef.current.click();
+      setShowCamera(true);
     } else {
       fileInputRef.current.click();
+    }
+  }
+
+  // 🔹 Handle camera capture
+  function handleCameraCapture(file) {
+    if (file && selectedType) {
+      if (file.size > 1 * 1024 * 1024) {
+        setError("Image size must be less than 1 MB");
+        return;
+      }
+      setFile(file);
+      setPreviewMap((prev) => ({
+        ...prev,
+        [selectedType]: URL.createObjectURL(file),
+      }));
+      setError("");
     }
   }
 
@@ -110,6 +128,12 @@ export default function CustomizeAvatar() {
 
   return (
     <div>
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
       <Header1 />
       <div
         style={{
