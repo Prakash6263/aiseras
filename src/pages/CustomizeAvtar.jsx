@@ -24,6 +24,7 @@ const avatarTypes = [
 export default function CustomizeAvatar() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const [selectedType, setSelectedType] = useState(null);
   const [file, setFile] = useState(null);
@@ -41,7 +42,12 @@ export default function CustomizeAvatar() {
   function handleAvatarClick(type) {
     if (loading) return;
     setSelectedType(type);
-    fileInputRef.current.click();
+    // 🔹 Clone Avatar uses camera, others use file upload
+    if (type === "clone") {
+      cameraInputRef.current.click();
+    } else {
+      fileInputRef.current.click();
+    }
   }
 
   // 🔹 File change
@@ -205,11 +211,21 @@ export default function CustomizeAvatar() {
             ))}
           </div>
 
-          {/* Hidden input */}
+          {/* Hidden file input for Cartoon & Image Avatar */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+
+          {/* Hidden camera input for Clone Avatar */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
             onChange={handleFileChange}
             style={{ display: "none" }}
           />
