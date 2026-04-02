@@ -62,12 +62,10 @@ const Header1 = () => {
             <Link to="/landing" className="d-flex align-items-center">
               <img
                 src={img1}
-                alt="logo"
+                alt="SERAS logo"
                 style={{
-                  width: 70,
-                  height: 70,
-                  borderRadius: "50%",
-                  objectFit: "cover",
+                  height: 60,
+                  objectFit: "contain",
                 }}
               />
             </Link>

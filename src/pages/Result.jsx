@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import img2 from "../assets/assets/img/logo/logo.png";
+import img2 from "../assets/assets/img/logo/seras-logo.jpg";
 
 import img1 from '../assets/images/happy-face.png';
 import angry from '../assets/images/angry.png';

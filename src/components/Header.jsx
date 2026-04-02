@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import img1 from "../assets/assets/img/logo/logo.png"
+import img1 from "../assets/assets/img/logo/seras-logo.jpg"
 import { Link, useNavigate } from "react-router-dom" // add useNavigate to handle logout redirect
 
 const Header = () => {
@@ -76,7 +76,7 @@ const Header = () => {
               <div className="header-item item-left">
                 <div className="logo-menu">
                   <Link to="/" className="logo d-xl-block">
-                    <img src={img1 || "/placeholder.svg"} alt="logo" style={{ width: 150 }} />
+                    <img src={img1 || "/placeholder.svg"} alt="logo" style={{ width: 70 }} />
                   </Link>
                 </div>
               </div>

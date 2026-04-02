@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import img1 from "../assets/assets/img/logo/logo.png";
+import img1 from "../assets/assets/img/logo/seras-logo.jpg";
 import img2 from "../assets/images/happy-face.png";
 import { Link, useNavigate } from "react-router-dom";
 import Header1 from "../components/Header1";
@@ -57,7 +57,7 @@ const Landing = () => {
               <h4 className="text-white mb-2">Hello,</h4>
               <h2 className="text-white">
                 {user?.full_name || "Guest"}{" "}
-                <img src={img2} style={{ width: 60 }} />
+                <img src={img2} style={{ width: 30 }} />
               </h2>
             </div>
 

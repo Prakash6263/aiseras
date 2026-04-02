@@ -5,7 +5,7 @@ import img1 from "../assets/images/frame.png";
 import Camera from "../assets/images/camera.png";
 import image2 from "../assets/images/image2.png";
 import image from "../assets/images/image.png";
-import logo from "../assets/assets/img/logo/logo.png";
+import logo from "../assets/assets/img/logo/seras-logo.jpg";
 import { uploadFaceImage, captureFace } from "../utils/authApi";
 import Header1 from "../components/Header1";
 import Footer from "../components/Footer";

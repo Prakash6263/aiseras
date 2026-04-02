@@ -5,7 +5,7 @@ import SignUp from "./pages/SignUp"
 import VerificationMail from "./pages/VerificationMail"
 import FillProfile from "./pages/FillProfile"
 import SignIn from "./pages/SignIn"
-import FaceRecognition from "./pages/FaceRecognition"
+
 import Result from "./pages/result"
 import Landing from "./pages/Landing"
 import PublicRoute from "./components/PublicRoute"
@@ -48,7 +48,7 @@ function App() {
             </PublicRoute>
           }
         />
-        <Route path="/face-recognition" element={<FaceRecognition />} />
+
         <Route path="/verify-email" element={<VerificationMail />} />
         <Route path="/profile" element={<FillProfile />} />
         <Route path="/result" element={<Result />} />

@@ -8,6 +8,7 @@ import cloneDummy from "../assets/images/select2.png";
 import imageDummy from "../assets/images/select3.png";
 import Header1 from "../components/Header1";
 import Footer from "../components/Footer";
+import CameraCapture from "../components/CameraCapture";
 
 // Avatar types + mapping to API style
 const avatarTypes = [
@@ -24,11 +25,13 @@ const avatarTypes = [
 export default function CustomizeAvatar() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const [selectedType, setSelectedType] = useState(null);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
 
   const [previewMap, setPreviewMap] = useState(() =>
     avatarTypes.reduce((acc, item) => {
@@ -41,7 +44,28 @@ export default function CustomizeAvatar() {
   function handleAvatarClick(type) {
     if (loading) return;
     setSelectedType(type);
-    fileInputRef.current.click();
+    // 🔹 Clone Avatar uses camera, others use file upload
+    if (type === "clone") {
+      setShowCamera(true);
+    } else {
+      fileInputRef.current.click();
+    }
+  }
+
+  // 🔹 Handle camera capture
+  function handleCameraCapture(file) {
+    if (file && selectedType) {
+      if (file.size > 1 * 1024 * 1024) {
+        setError("Image size must be less than 1 MB");
+        return;
+      }
+      setFile(file);
+      setPreviewMap((prev) => ({
+        ...prev,
+        [selectedType]: URL.createObjectURL(file),
+      }));
+      setError("");
+    }
   }
 
   // 🔹 File change
@@ -69,7 +93,7 @@ export default function CustomizeAvatar() {
 
       // 1️⃣ Upload image
       const uploadRes = await uploadUserImage(file);
-      // console.log("uploadUserImage Error", uploadRes);
+      console.log("[v0] uploadUserImage response:", uploadRes);
       if (!uploadRes?.success) throw new Error("Upload failed");
 
       // 2️⃣ Map selected type to API style
@@ -82,13 +106,15 @@ export default function CustomizeAvatar() {
         name: `${selectedAvatar.label} - My Avatar`,
         description: `Avatar created in ${style} style`,
       });
-      // console.log("createUserAvatar img", createRes);
+      console.log("[v0] createUserAvatar response:", createRes);
+      
+      if (!createRes?.success) throw new Error("Avatar creation failed");
+
       localStorage.setItem("createdAvatarImageUrl", createRes.image_url);
       localStorage.setItem("createdAvatarId", createRes.avatar_id);
 
-      if (!createRes?.success) throw new Error("Avatar creation failed");
-
-      // 4️⃣ Navigate to final page
+      // 4️⃣ Reset loading and navigate to final page
+      setLoading(false);
       navigate("/SelectOption", {
         state: {
           imageUrl: createRes.image_url,
@@ -97,13 +123,20 @@ export default function CustomizeAvatar() {
         },
       });
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      console.log("[v0] Avatar creation error:", err.message);
+      setError(err.message || "Network error. Please try again.");
       setLoading(false);
     }
   }
 
   return (
     <div>
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
       <Header1 />
       <div
         style={{
@@ -205,11 +238,21 @@ export default function CustomizeAvatar() {
             ))}
           </div>
 
-          {/* Hidden input */}
+          {/* Hidden file input for Cartoon & Image Avatar */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+
+          {/* Hidden camera input for Clone Avatar */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
             onChange={handleFileChange}
             style={{ display: "none" }}
           />
@@ -255,16 +298,44 @@ export default function CustomizeAvatar() {
           </div>
 
           {error && (
-            <p
+            <div
               style={{
-                color: "#ff9c9c",
-                fontSize: 13,
-                textAlign: "center",
-                marginTop: 8,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                marginTop: 12,
+                alignItems: "center",
               }}
             >
-              {error}
-            </p>
+              <p
+                style={{
+                  color: "#ff9c9c",
+                  fontSize: 13,
+                  textAlign: "center",
+                  margin: 0,
+                }}
+              >
+                {error}
+              </p>
+              <button
+                onClick={handleCreateAvatar}
+                disabled={loading}
+                style={{
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.6 : 1,
+                  transition: "all 0.3s ease",
+                }}
+              >
+                Retry
+              </button>
+            </div>
           )}
 
           <style>

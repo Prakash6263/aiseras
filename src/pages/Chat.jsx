@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logoSrc from "../assets/assets/img/logo/logo.png";
+import logoSrc from "../assets/assets/img/logo/seras-logo.jpg";
 import { sendChatMessage, checkVideoStatus } from "../utils/mediaApi";
 import chatbotAvatar from "../images/chatbot.png";
 import Header1 from "../components/Header1";
