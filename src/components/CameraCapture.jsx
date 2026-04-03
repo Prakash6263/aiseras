@@ -136,12 +136,24 @@ export default function CameraCapture({ onCapture, onClose }) {
     startCamera();
   }
 
+  // ── Convert data URL to Blob without fetch() ──────────────────────────────
+  // fetch(dataURL) causes a network error on Android/iOS — this is a known
+  // mobile browser bug. We decode the base64 string manually instead.
+  function dataURLtoBlob(dataUrl) {
+    const [header, b64] = dataUrl.split(",");
+    const mime = header.match(/:(.*?);/)[1];
+    const binary = atob(b64);
+    const len = binary.length;
+    const u8 = new Uint8Array(len);
+    for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+    return new Blob([u8], { type: mime });
+  }
+
   // ── Confirm & pass file to parent ──────────────────────────────────────────
-  async function handleConfirm() {
+  function handleConfirm() {
     if (!capturedImage) return;
     try {
-      const res  = await fetch(capturedImage);
-      const blob = await res.blob();
+      const blob = dataURLtoBlob(capturedImage);
       const file = new File([blob], "clone-capture.jpg", { type: "image/jpeg" });
       onCapture(file);
       onClose();
