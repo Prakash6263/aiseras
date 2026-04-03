@@ -261,3 +261,21 @@ export async function sendStreamingTalk({ akool_session_id, message }) {
   })
   return res.data
 }
+
+/**
+ * Close a streaming session when the user leaves the chat.
+ * POST /streaming/close
+ * Body (form-urlencoded): { akool_session_id, user_id }
+ * Must also call agoraClient.leave() on the frontend.
+ */
+export async function closeStreamingSession(akool_session_id) {
+  const url = `${BASE}/streaming/close`
+  const params = new URLSearchParams()
+  params.append("akool_session_id", akool_session_id)
+  params.append("user_id", getCurrentUserId())
+  const res = await axios.post(url, params, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+    withCredentials: false,
+  })
+  return res.data
+}

@@ -10,6 +10,7 @@ import {
   checkStreamingAvatarStatus,
   createStreamingSession,
   sendStreamingTalk,
+  closeStreamingSession,
 } from "../utils/mediaApi";
 import chatbotAvatar from "../images/chatbot.png";
 import Header1 from "../components/Header1";
@@ -76,6 +77,8 @@ export default function Chat() {
   const [phaseText, setPhaseText] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [sessionId, setSessionId] = useState(null);
+  // Ref mirror of sessionId so the unmount cleanup closure always sees the latest value
+  const sessionIdRef = useRef(null);
   const [streamingAvatarId, setStreamingAvatarId] = useState(null); // local streaming avatar id
 
   // ─── Agora state ─────────────────────────────────────────────────
@@ -152,15 +155,26 @@ export default function Chat() {
     streamStatusPollingRef.current = setInterval(async () => {
       try {
         const statusRes = await checkStreamingAvatarStatus(strippedAvatarId);
-        const ready = statusRes?.is_ready === true || statusRes?.status === 3;
+        const status = statusRes?.status;
+
+        // Status 4 = failed on the Akool side — stop polling and surface the error
+        if (status === 4) {
+          clearInterval(streamStatusPollingRef.current);
+          streamStatusPollingRef.current = null;
+          setPhase(PHASE.ERROR);
+          setErrorMsg("Avatar streaming failed (status 4). Please try again or re-upload your avatar.");
+          return;
+        }
+
+        const ready = statusRes?.is_ready === true || status === 3;
         if (ready) {
           clearInterval(streamStatusPollingRef.current);
           streamStatusPollingRef.current = null;
           await startSession(strippedAvatarId);
         } else {
-          setPhaseText(`Preparing avatar… status: ${statusRes?.status_text || "processing"}`);
+          setPhaseText(`Preparing avatar… status: ${statusRes?.status_text || "processing"} (${status ?? "?"})`);
         }
-      } catch (err) {
+      } catch {
         clearInterval(streamStatusPollingRef.current);
         streamStatusPollingRef.current = null;
         setPhase(PHASE.ERROR);
@@ -191,6 +205,7 @@ export default function Chat() {
       }
 
       setSessionId(sid);
+      sessionIdRef.current = sid; // keep ref in sync for unmount cleanup
       await joinAgoraChannel(creds);
     } catch (err) {
       setPhase(PHASE.ERROR);
@@ -355,10 +370,18 @@ export default function Chat() {
     startStreamingSetup(videoUrl, akoolId);
 
     return () => {
+      // Clean up polling
       if (streamStatusPollingRef.current) clearInterval(streamStatusPollingRef.current);
-      if (agoraClientRef.current) {
-        agoraClientRef.current.leave().catch(() => {});
+
+      // Leave Agora channel and close the Akool streaming session gracefully
+      const client = agoraClientRef.current;
+      const sid = sessionIdRef.current; // use a ref so cleanup always has the latest value
+      if (client) {
+        client.leave().catch(() => {});
         agoraClientRef.current = null;
+      }
+      if (sid) {
+        closeStreamingSession(sid).catch(() => {});
       }
     };
   }, []);
