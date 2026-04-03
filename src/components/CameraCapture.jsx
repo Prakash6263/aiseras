@@ -12,35 +12,87 @@ export default function CameraCapture({ onCapture, onClose }) {
   // ── Start camera ──────────────────────────────────────────────────────────
   const startCamera = useCallback(async () => {
     setLoading(true);
+    setCameraReady(false);
     setError("");
+    setCapturedImage(null);
+
+    // Stop any existing stream first
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+
     try {
-      // Prefer the front-facing (selfie) camera for clone avatar
-      const constraints = {
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      };
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("NotSupported");
+      }
+
+      // Try front camera first; fall back to any camera if facingMode fails
+      let mediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+      } catch {
+        // Some Android devices fail with facingMode constraints — retry without them
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+
       streamRef.current = mediaStream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        // play() must be called explicitly — required on mobile Safari
-        await videoRef.current.play();
-        setCameraReady(true);
-      }
+      const video = videoRef.current;
+      if (!video) return;
+
+      video.srcObject = mediaStream;
+
+      // On Android Chrome, play() must be called AFTER loadedmetadata fires.
+      // We attach a one-time listener so play() is deferred to the right moment.
+      const onReady = () => {
+        video.removeEventListener("loadedmetadata", onReady);
+        video.play()
+          .then(() => {
+            setCameraReady(true);
+            setLoading(false);
+          })
+          .catch(() => {
+            // play() was interrupted — try once more after a short delay
+            setTimeout(() => {
+              video.play()
+                .then(() => { setCameraReady(true); setLoading(false); })
+                .catch(() => {
+                  setError("Camera stream could not start. Please reload and try again.");
+                  setLoading(false);
+                });
+            }, 300);
+          });
+      };
+
+      video.addEventListener("loadedmetadata", onReady);
+
+      // Safety timeout: if loadedmetadata never fires (e.g. some browser quirk),
+      // attempt play anyway after 3 s and let the browser decide.
+      setTimeout(() => {
+        if (!cameraReady && streamRef.current) {
+          video.removeEventListener("loadedmetadata", onReady);
+          video.play().then(() => { setCameraReady(true); setLoading(false); }).catch(() => {});
+        }
+      }, 3000);
+
     } catch (err) {
       let msg = "Unable to access camera. Please allow camera permission and try again.";
-      if (err.name === "NotAllowedError") msg = "Camera permission denied. Please enable it in your browser settings.";
-      if (err.name === "NotFoundError") msg = "No camera found on this device.";
-      if (err.name === "NotReadableError") msg = "Camera is already in use by another app.";
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError")
+        msg = "Camera permission denied. Please enable it in your browser/app settings and reload.";
+      else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError")
+        msg = "No camera was found on this device.";
+      else if (err.name === "NotReadableError" || err.name === "TrackStartError")
+        msg = "Camera is already in use by another app. Please close it and try again.";
+      else if (err.message === "NotSupported")
+        msg = "Your browser does not support camera access. Please use Chrome or Safari.";
       setError(msg);
-    } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Stop camera ───────────────────────────────────────────────────────────
@@ -73,8 +125,8 @@ export default function CameraCapture({ onCapture, onClose }) {
   }
 
   // ── Retake ────────────────────────────────────────────────────────────────
+  // startCamera() already resets capturedImage and cameraReady internally
   function handleRetake() {
-    setCapturedImage(null);
     startCamera();
   }
 
@@ -196,6 +248,8 @@ export default function CameraCapture({ onCapture, onClose }) {
               autoPlay
               playsInline
               muted
+              webkit-playsinline="true"
+              x5-playsinline="true"
               style={{
                 width: "100%",
                 borderRadius: 10,
