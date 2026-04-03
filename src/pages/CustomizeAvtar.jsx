@@ -125,8 +125,8 @@ export default function CustomizeAvatar() {
   function handleFileChange(e) {
     const f = e.target.files?.[0];
     if (!f || !selectedType) return;
-    if (f.size > 1 * 1024 * 1024) {
-      setError("Image size must be less than 1 MB");
+    if (f.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5 MB");
       return;
     }
     setFile(f);
