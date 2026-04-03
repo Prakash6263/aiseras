@@ -52,19 +52,72 @@ export default function CustomizeAvatar() {
     }
   }
 
-  // 🔹 Handle camera capture
-  function handleCameraCapture(file) {
-    if (file && selectedType) {
-      if (file.size > 1 * 1024 * 1024) {
-        setError("Image size must be less than 1 MB");
-        return;
-      }
-      setFile(file);
-      setPreviewMap((prev) => ({
-        ...prev,
-        [selectedType]: URL.createObjectURL(file),
-      }));
+  // 🔹 Handle camera capture — called after user confirms photo in CameraCapture modal
+  // Camera JPEGs are routinely 1–3 MB so we raise the limit to 5 MB here.
+  // We also auto-trigger avatar creation immediately so the user does not need
+  // to press "Create Avatar" manually after capturing.
+  function handleCameraCapture(capturedFile) {
+    if (!capturedFile || !selectedType) return;
+    if (capturedFile.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5 MB. Please retake the photo.");
+      return;
+    }
+    setFile(capturedFile);
+    setPreviewMap((prev) => ({
+      ...prev,
+      [selectedType]: URL.createObjectURL(capturedFile),
+    }));
+    setError("");
+    // Auto-submit: start avatar creation immediately after photo is confirmed
+    triggerCreateAvatar(capturedFile);
+  }
+
+  // 🔹 Core avatar creation — accepts an explicit fileArg so it can be called
+  // immediately from handleCameraCapture without waiting for setFile() to settle.
+  async function triggerCreateAvatar(fileArg) {
+    const targetFile = fileArg || file;
+    if (!targetFile || !selectedType) return;
+
+    try {
+      setLoading(true);
       setError("");
+
+      console.log("[v0] Uploading image, size:", targetFile.size, "type:", targetFile.type);
+      const uploadRes = await uploadUserImage(targetFile);
+      console.log("[v0] uploadUserImage response:", uploadRes);
+      if (!uploadRes?.success) throw new Error(uploadRes?.message || "Upload failed");
+
+      const selectedAvatar = avatarTypes.find((a) => a.key === selectedType);
+      const style = selectedAvatar?.style || "original";
+
+      const createRes = await createUserAvatar(uploadRes.image_url, {
+        style,
+        name: `${selectedAvatar.label} - My Avatar`,
+        description: `Avatar created in ${style} style`,
+      });
+      console.log("[v0] createUserAvatar response:", createRes);
+      if (!createRes?.success) throw new Error(createRes?.message || "Avatar creation failed");
+
+      localStorage.setItem("createdAvatarImageUrl", createRes.image_url);
+      localStorage.setItem("createdAvatarId", createRes.avatar_id);
+
+      setLoading(false);
+      navigate("/SelectOption", {
+        state: {
+          imageUrl: createRes.image_url,
+          avatarId: createRes.avatar_id,
+          type: selectedType,
+        },
+      });
+    } catch (err) {
+      console.log("[v0] Avatar creation error:", err?.response?.data || err.message);
+      setError(
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        err.message ||
+        "Network error. Please try again."
+      );
+      setLoading(false);
     }
   }
 
@@ -83,50 +136,9 @@ export default function CustomizeAvatar() {
     }));
   }
 
-  // 🔹 Create avatar API call
-  async function handleCreateAvatar() {
-    if (!file || !selectedType) return;
-
-    try {
-      setLoading(true);
-      setError("");
-
-      // 1️⃣ Upload image
-      const uploadRes = await uploadUserImage(file);
-      console.log("[v0] uploadUserImage response:", uploadRes);
-      if (!uploadRes?.success) throw new Error("Upload failed");
-
-      // 2️⃣ Map selected type to API style
-      const selectedAvatar = avatarTypes.find((a) => a.key === selectedType);
-      const style = selectedAvatar?.style || "original";
-
-      // 3️⃣ Create avatar
-      const createRes = await createUserAvatar(uploadRes.image_url, {
-        style,
-        name: `${selectedAvatar.label} - My Avatar`,
-        description: `Avatar created in ${style} style`,
-      });
-      console.log("[v0] createUserAvatar response:", createRes);
-      
-      if (!createRes?.success) throw new Error("Avatar creation failed");
-
-      localStorage.setItem("createdAvatarImageUrl", createRes.image_url);
-      localStorage.setItem("createdAvatarId", createRes.avatar_id);
-
-      // 4️⃣ Reset loading and navigate to final page
-      setLoading(false);
-      navigate("/SelectOption", {
-        state: {
-          imageUrl: createRes.image_url,
-          avatarId: createRes.avatar_id,
-          type: selectedType,
-        },
-      });
-    } catch (err) {
-      console.log("[v0] Avatar creation error:", err.message);
-      setError(err.message || "Network error. Please try again.");
-      setLoading(false);
-    }
+  // 🔹 "Create Avatar" button handler — delegates to shared triggerCreateAvatar
+  function handleCreateAvatar() {
+    triggerCreateAvatar(null);
   }
 
   return (

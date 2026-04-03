@@ -108,20 +108,26 @@ export default function CameraCapture({ onCapture, onClose }) {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    canvas.width  = video.videoWidth  || 640;
-    canvas.height = video.videoHeight || 480;
+    // Scale down to max 720px wide to keep file size under ~400 KB
+    const MAX_W = 720;
+    const srcW  = video.videoWidth  || 640;
+    const srcH  = video.videoHeight || 480;
+    const ratio = Math.min(1, MAX_W / srcW);
+    canvas.width  = Math.round(srcW * ratio);
+    canvas.height = Math.round(srcH * ratio);
 
     const ctx = canvas.getContext("2d");
-    // Mirror the canvas to match the selfie mirror effect on the preview
+    // Mirror horizontally to match the selfie preview
     ctx.save();
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+    // quality 0.82 → typical output ~150–350 KB, well within upload limits
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
     setCapturedImage(dataUrl);
-    stopStream(); // release camera while user reviews
+    stopStream();
     setPhase("captured");
   }
 
