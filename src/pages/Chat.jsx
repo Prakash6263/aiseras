@@ -80,7 +80,6 @@ export default function Chat() {
 
   // ─── Agora state ─────────────────────────────────────────────────
   const agoraClientRef = useRef(null);
-  const localStreamChannelRef = useRef(null); // for DataStream
   const remoteVideoRef = useRef(null); // <div> to attach remote video
   const [isConnected, setIsConnected] = useState(false);
 
@@ -170,7 +169,7 @@ export default function Chat() {
     }, 3000);
   }
 
-  // ─── Step 3: Create session + join Agora ────────────────────────
+  // ─── Step 3: Create session + join Agora ───────���────────────────
   async function startSession(strippedAvatarId) {
     try {
       setPhase(PHASE.CREATING_SESSION);
@@ -204,8 +203,9 @@ export default function Chat() {
     try {
       setPhaseText("Joining live channel…");
 
-      const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
-      client.setClientRole("audience");
+      // Use "rtc" mode: all peers can send/receive stream messages freely.
+      // "live" mode restricts audience from sending data stream messages.
+      const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
       agoraClientRef.current = client;
 
       // Listen for remote user publishing video/audio
@@ -228,12 +228,7 @@ export default function Chat() {
         setIsConnected(false);
       });
 
-      // Create DataStream for sending agora_message_payload
       await client.join(agora_app_id, agora_channel, agora_token, agora_uid);
-
-      // Create DataStream channel
-      const streamChannelId = await client.createDataStream({ reliable: true, ordered: true });
-      localStreamChannelRef.current = streamChannelId;
 
       setPhase(PHASE.LIVE);
       setIsConnected(true);
@@ -244,16 +239,17 @@ export default function Chat() {
   }
 
   // ─── Send Agora DataStream message ──────────────────────────────
+  // agora-rtc-sdk-ng v4: sendStreamMessage takes a single Uint8Array argument.
+  // No createDataStream / streamId is needed in the NG SDK.
   async function sendAgoraDataStreamMessage(payload) {
     try {
       const client = agoraClientRef.current;
-      const streamId = localStreamChannelRef.current;
-      if (!client || streamId === null || streamId === undefined) return;
+      if (!client) return;
       const msgStr = JSON.stringify(payload);
       const encoder = new TextEncoder();
-      await client.sendStreamMessage(streamId, encoder.encode(msgStr));
-    } catch (err) {
-      console.log("[v0] Failed to send Agora DataStream message:", err.message);
+      await client.sendStreamMessage(encoder.encode(msgStr));
+    } catch {
+      // DataStream send failure is non-fatal — avatar may still respond via audio
     }
   }
 
