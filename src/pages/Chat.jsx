@@ -85,9 +85,12 @@ export default function Chat() {
   const [isConnected, setIsConnected] = useState(false);
 
   // ─── Chat messages ───────────────────────────────────────────────
+  // Each message: { role, text, agoraPayload? }
+  // agoraPayload is stored per bot message so clicking it can replay the avatar speaking
   const [messages, setMessages] = useState([]);
   const [mainInput, setMainInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [replayingIdx, setReplayingIdx] = useState(null);
   const messagesEndRef = useRef(null);
   const scrollToBottom = useCallback(() => {
     try { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); } catch {}
@@ -254,20 +257,15 @@ export default function Chat() {
     }
   }
 
-  // ─── Handle sending a chat message ──────────────────────────────
-  async function handleSend(source = "main") {
-    const content = source === "main" ? mainInput.trim() : miniInput.trim();
+  // ─── Handle sending a main avatar chat message ──────────────────
+  // Uses the live Agora streaming session. Only for the main chat panel.
+  async function handleSend() {
+    const content = mainInput.trim();
     if (!content || !sessionId) return;
 
-    if (source === "main") {
-      setMessages((prev) => [...prev, { role: "user", text: content }]);
-      setMainInput("");
-      setSending(true);
-    } else {
-      setMiniMessages((prev) => [...prev, { role: "user", text: content }]);
-      setMiniInput("");
-      setMiniSending(true);
-    }
+    setMessages((prev) => [...prev, { role: "user", text: content }]);
+    setMainInput("");
+    setSending(true);
 
     try {
       const talkRes = await sendStreamingTalk({
@@ -278,28 +276,58 @@ export default function Chat() {
       const responseText = talkRes?.response_text || "…";
       const agoraPayload = talkRes?.agora_message_payload;
 
-      // Send agora_message_payload via Agora DataStream so avatar speaks
+      // Send agora_message_payload via Agora DataStream so avatar speaks live
       if (agoraPayload) {
         await sendAgoraDataStreamMessage(agoraPayload);
       }
 
-      const botMsg = { role: "bot", text: responseText };
-      if (source === "main") {
-        setMessages((prev) => [...prev, botMsg]);
-      } else {
-        setMiniMessages((prev) => [...prev, botMsg]);
-      }
-    } catch (err) {
-      const errText = "Failed to send. Please try again.";
-      if (source === "main") {
-        setMessages((prev) => [...prev, { role: "bot", text: errText }]);
-      } else {
-        setMiniMessages((prev) => [...prev, { role: "bot", text: errText }]);
-      }
+      // Store agora payload per bot message so the user can replay it by clicking the bubble
+      const botMsg = { role: "bot", text: responseText, agoraPayload: agoraPayload || null };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch {
+      setMessages((prev) => [...prev, { role: "bot", text: "Failed to send. Please try again." }]);
     } finally {
-      if (source === "main") setSending(false);
-      else setMiniSending(false);
+      setSending(false);
     }
+  }
+
+  // ─── Handle mini floating helper chatbot ────────────────────────
+  // This is a SEPARATE generic helper — it does NOT use the user's avatar or
+  // the live Agora session. It uses sendChatMessage with a fixed helper avatar id
+  // so it is never driven by whatever the user last uploaded.
+  const HELPER_AVATAR_ID = "helper"; // generic placeholder; backend handles this
+  async function handleMiniSend() {
+    const content = miniInput.trim();
+    if (!content || miniSending) return;
+
+    setMiniMessages((prev) => [...prev, { role: "user", text: content }]);
+    setMiniInput("");
+    setMiniSending(true);
+
+    try {
+      const res = await sendChatMessage({
+        avatar_id: HELPER_AVATAR_ID,
+        message: content,
+        voice_type: "default_female",
+      });
+      const responseText = res?.response_text || res?.message || "I'm here to help!";
+      setMiniMessages((prev) => [...prev, { role: "bot", text: responseText }]);
+    } catch {
+      setMiniMessages((prev) => [...prev, { role: "bot", text: "I'm here to help. Please try again." }]);
+    } finally {
+      setMiniSending(false);
+    }
+  }
+
+  // ─── Replay a previous bot message by re-sending its Agora payload ──
+  async function handleReplay(msgIndex) {
+    const msg = messages[msgIndex];
+    if (!msg?.agoraPayload || replayingIdx !== null) return;
+    setReplayingIdx(msgIndex);
+    try {
+      await sendAgoraDataStreamMessage(msg.agoraPayload);
+    } catch {}
+    setTimeout(() => setReplayingIdx(null), 1500);
   }
 
   // ─── Initialise on mount ─────────────────────────────────────────
@@ -554,7 +582,7 @@ export default function Chat() {
                     disabled={phase !== PHASE.LIVE && !isBootstrapMode}
                     onKeyDown={(e) => {
                       if (e.key !== "Enter") return;
-                      if (phase === PHASE.LIVE && !sending) handleSend("main");
+                      if (phase === PHASE.LIVE && !sending) handleSend();
                       else if (isBootstrapMode && !generatingVideo) handleBootstrapSend();
                     }}
                   />
@@ -563,7 +591,7 @@ export default function Chat() {
                     type="button"
                     aria-label="Send"
                     onClick={() => {
-                      if (phase === PHASE.LIVE) handleSend("main");
+                      if (phase === PHASE.LIVE) handleSend();
                       else if (isBootstrapMode) handleBootstrapSend();
                     }}
                     disabled={(phase !== PHASE.LIVE && !isBootstrapMode) || sending || generatingVideo}
@@ -579,18 +607,18 @@ export default function Chat() {
                 {messages.map((m, i) => (
                   <div key={i} className={m.role === "bot" ? "msg bot" : "msg user"}>
                     <div className="text">{m.text}</div>
-                    {!!m.status_text && !m.video_url && (
-                      <div className="hint">Status: {m.status_text}</div>
+                    {/* Bot bubble replay button: click to make avatar speak this response again */}
+                    {m.role === "bot" && m.agoraPayload && phase === PHASE.LIVE && (
+                      <button
+                        className="replay-btn"
+                        onClick={() => handleReplay(i)}
+                        disabled={replayingIdx !== null}
+                        title="Replay this response"
+                        aria-label="Replay avatar response"
+                      >
+                        {replayingIdx === i ? "Replaying…" : "▶ Replay"}
+                      </button>
                     )}
-                    {m.video_url ? (
-                      <video
-                        src={m.video_url}
-                        className="video"
-                        controls
-                        playsInline
-                        preload="none"
-                      />
-                    ) : null}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
@@ -625,11 +653,11 @@ export default function Chat() {
                 placeholder="Type To Chat"
                 value={miniInput}
                 onChange={(e) => setMiniInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !miniSending && handleSend("mini")}
+                onKeyDown={(e) => e.key === "Enter" && !miniSending && handleMiniSend()}
               />
               <span
                 className="send-icon"
-                onClick={() => handleSend("mini")}
+                onClick={() => handleMiniSend()}
                 role="button"
                 aria-label="Send"
               >
@@ -741,7 +769,20 @@ export default function Chat() {
 .msg.user .text { background: #000; border: 1px solid #1f8bff; align-self: flex-end; }
 .msg.bot .text  { background: #000; border: 1px solid #b636ff; align-self: flex-start; }
 .msg .hint { color: #bbb; font-size: 12px; }
-.video { width: 100%; max-width: 480px; border: 1px solid #2b2b2b; border-radius: 8px; background: #000; }
+.replay-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid #b636ff;
+  color: #b636ff;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.replay-btn:hover:not(:disabled) { background: #b636ff22; }
+.replay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .chatbot-container { position: fixed; bottom: 15%; right: 20px; z-index: 30; display: flex; flex-direction: column; align-items: flex-end; }
 .chatbot-box { background: #0c0c0c; border-radius: 16px; width: 320px; box-shadow: 0 0 12px rgba(202,0,255,.4); overflow: hidden; margin-bottom: 12px; border: 1px solid #3b3b3b; }
