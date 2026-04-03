@@ -330,6 +330,31 @@ export default function Chat() {
     }
   }
 
+  // ─── Explicitly end the live session ────────────────────────────
+  async function handleEndSession() {
+    // Leave Agora channel
+    if (agoraClientRef.current) {
+      try { await agoraClientRef.current.leave(); } catch {}
+      agoraClientRef.current = null;
+    }
+    // Close Akool streaming session
+    if (sessionIdRef.current) {
+      try { await closeStreamingSession(sessionIdRef.current); } catch {}
+      sessionIdRef.current = null;
+    }
+    // Clear polling
+    if (streamStatusPollingRef.current) {
+      clearInterval(streamStatusPollingRef.current);
+      streamStatusPollingRef.current = null;
+    }
+    // Reset UI back to idle so the user can start a fresh session
+    setSessionId(null);
+    setPhase(PHASE.IDLE);
+    setIsConnected(false);
+    setMessages([]);
+    setPhaseText("");
+  }
+
   // ─── Replay a previous bot message by re-sending its Agora payload ──
   async function handleReplay(msgIndex) {
     const msg = messages[msgIndex];
@@ -572,6 +597,20 @@ export default function Chat() {
                 )}
               </div>
 
+              {/* End Session button — only shown when a live session is active */}
+              {phase === PHASE.LIVE && (
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                  <button
+                    className="end-session-btn"
+                    onClick={handleEndSession}
+                    aria-label="End live session"
+                    title="End the live streaming session"
+                  >
+                    End Session
+                  </button>
+                </div>
+              )}
+
               {/* Voice label */}
               <div className="controls-row mx-auto">
                 <h4 className="select" style={{ textAlign: "center", textAlignLast: "center" }}>
@@ -788,6 +827,22 @@ export default function Chat() {
 .msg.user .text { background: #000; border: 1px solid #1f8bff; align-self: flex-end; }
 .msg.bot .text  { background: #000; border: 1px solid #b636ff; align-self: flex-start; }
 .msg .hint { color: #bbb; font-size: 12px; }
+.end-session-btn {
+  background: transparent;
+  border: 2px solid #ff4444;
+  color: #ff4444;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 22px;
+  border-radius: 24px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, color 0.2s;
+}
+.end-session-btn:hover {
+  background: #ff444422;
+}
+
 .replay-btn {
   align-self: flex-start;
   background: transparent;
