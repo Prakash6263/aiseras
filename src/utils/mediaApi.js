@@ -180,3 +180,102 @@ export async function fetchUserHistory({ user_id = getCurrentUserId(), operation
   })
   return res.data // { success, user_id, total_count, operations: [...] }
 }
+
+// ─── STREAMING APIS ────────────────────────────────────────────────────────────
+
+/**
+ * Upload avatar for streaming.
+ * POST /streaming/upload-avatar
+ * Body: { user_id, name, video_url, akool_avatar_id }
+ * Returns: { success, avatar_id, ... }
+ */
+export async function uploadStreamingAvatar({ video_url, akool_avatar_id, name = "My Streaming Avatar" }) {
+  const url = `${BASE}/streaming/upload-avatar`
+  const body = {
+    user_id: getCurrentUserId(),
+    name,
+    video_url,
+    akool_avatar_id,
+  }
+  const res = await axios.post(url, body, {
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    withCredentials: false,
+  })
+  return res.data
+}
+
+/**
+ * Check streaming avatar status.
+ * GET /streaming/avatar-status?avatar_id=<id>
+ * Returns: { success, avatar_id, status, status_text, is_ready, thumbnail_url }
+ */
+export async function checkStreamingAvatarStatus(avatarId) {
+  const url = `${BASE}/streaming/avatar-status?avatar_id=${encodeURIComponent(avatarId)}`
+  const res = await axios.get(url, {
+    headers: { Accept: "application/json" },
+    withCredentials: false,
+  })
+  return res.data
+}
+
+/**
+ * Create a streaming session.
+ * POST /streaming/create
+ * Body: { user_id, akool_avatar_id, local_avatar_id, voice_id, duration, language, mode_type }
+ * Returns: { akool_session_id, status, message, agora_credentials: { agora_app_id, agora_channel, agora_token, agora_uid } }
+ */
+export async function createStreamingSession({ akool_avatar_id, voice_id = "en-US-female-1", duration = 3600, language = "en", mode_type = 2 }) {
+  const url = `${BASE}/streaming/create`
+  const body = {
+    user_id: getCurrentUserId(),
+    akool_avatar_id,
+    local_avatar_id: "string",
+    voice_id,
+    duration,
+    language,
+    mode_type,
+  }
+  const res = await axios.post(url, body, {
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    withCredentials: false,
+  })
+  return res.data
+}
+
+/**
+ * Send a live talk message.
+ * POST /streaming/talk
+ * Body: { user_id, akool_session_id, message }
+ * Returns: { akool_session_id, response_text, status, agora_message_payload }
+ */
+export async function sendStreamingTalk({ akool_session_id, message }) {
+  const url = `${BASE}/streaming/talk`
+  const body = {
+    user_id: getCurrentUserId(),
+    akool_session_id,
+    message,
+  }
+  const res = await axios.post(url, body, {
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    withCredentials: false,
+  })
+  return res.data
+}
+
+/**
+ * Close a streaming session when the user leaves the chat.
+ * POST /streaming/close
+ * Body (form-urlencoded): { akool_session_id, user_id }
+ * Must also call agoraClient.leave() on the frontend.
+ */
+export async function closeStreamingSession(akool_session_id) {
+  const url = `${BASE}/streaming/close`
+  const params = new URLSearchParams()
+  params.append("akool_session_id", akool_session_id)
+  params.append("user_id", getCurrentUserId())
+  const res = await axios.post(url, params, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+    withCredentials: false,
+  })
+  return res.data
+}
